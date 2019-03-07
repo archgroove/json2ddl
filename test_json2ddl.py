@@ -8,7 +8,13 @@ import unittest
 from json2ddl import json_field_to_string
 
 class TestJson2AthenaDDL(unittest.TestCase):
-    """Test json2ddl"""
+    """
+    Test json2ddl
+
+    TODO:
+    - array where elements are not same type
+    - array where elements are structs with different schemas
+    """
 
     def test_struct(self):
         """Test that a struct is generated correctly"""
