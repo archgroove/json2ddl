@@ -9,6 +9,8 @@ Treats items in lists as string if they are not the same type.
 import json
 import argparse
 
+DEFAULT_TYPE = 'string'
+
 def helper_json_value_to_struct_entry(key, val):
     """
     If a key, val pair are nested inside another json field, this generates
@@ -22,7 +24,7 @@ def helper_json_value_to_struct_entry(key, val):
         print('instance of list')
         string = '{}:'.format(key) + 'array<' + get_list_type(val) + '>'
     else:
-        string = '{}:'.format(key) + 'string'
+        string = '{}:'.format(key) + DEFAULT_TYPE
     return string
 
 def get_list_type(lst):
@@ -31,27 +33,27 @@ def get_list_type(lst):
     try:
         first_element = lst[0]
     except IndexError:
-        return 'string'
+        return DEFAULT_TYPE
     # TODO: check whether then elements are the same before trying to generated
     # the inner element type here, and possibly create a new column for each Type
     # in the list.
     if not all(isinstance(element, type(first_element)) for element in lst):
-        return 'string'
+        return DEFAULT_TYPE
     # TODO if the elements are structs, check whether they all have the same schema
     if isinstance(first_element, dict):
         string = json_value_to_struct(first_element)
     elif isinstance(first_element, list):
         string = 'array<' + get_list_type(first_element) + '>'
     else:
-        string = 'string'
+        string = DEFAULT_TYPE
     return string
 
 def json_value_to_struct(structkeyvals):
     """
     If a json field is a nested dict of other fields, this generates the ddl
     struct corresponding to those nested fields. It calls
-    `helper_json_value_to_struct` to construct the either a string entry or
-    another struct. `helper_json_value_to_struct` calls this function again
+    `helper_json_value_to_struct` to construct the either a `DEFAULT_TYPE entry
+    or another struct. `helper_json_value_to_struct` calls this function again
     if it is another struct.
 
     Example: struct<field1:string, field2:string>
