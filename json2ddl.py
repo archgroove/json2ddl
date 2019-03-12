@@ -6,6 +6,9 @@ Convert json to DDL.
 Everything in the json is assumed to be a struct, an array or a string.
 Arrays are assumed to contain items all of the same schema.
 Treats items in lists as string if they are not the same type.
+
+TODO:
+[ ] Add backticks to field names starting with underscores
 """
 import json
 import argparse
@@ -78,9 +81,16 @@ def json_field_to_string(key, value):
         return '`{}` '.format(key) + 'array<' + get_list_type(value) + '>'.format(key)
     return '`{}` string'.format(key)
 
-def json2ddl(jsonfile):
+def json2ddl(jsonfile, encoding=None):
     with open(jsonfile) as fp:
-        jsondata = json.load(fp)
+        if encoding == None:
+            jsondata = json.load(fp)
+        elif encoding.lower() in ['utf8', 'utf-8']:
+            jsondata = json.load(fp, encoding='utf-8')
+        elif encoding.lower() in ['ascii']:
+            jsondata = json.load(fp)
+        else:
+            jsondata = json.load(fp, encoding=encoding)
     ddl = 'CREATE EXTERNAL TABLE `<table_name>`(\n'
     ordered_jsondata = list(jsondata.items())
     for key, val in ordered_jsondata[:-1]:
@@ -92,9 +102,11 @@ def json2ddl(jsonfile):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Convert JSON to a DDL schema")
+    parser.add_argument('--encoding', help="Only 'utf-8' or 'ascii' is supported")
     parser.add_argument('jsonfile')
     args = parser.parse_args()
-    ddl = json2ddl(args.jsonfile)
+    encoding = args.encoding if args.encoding else None
+    ddl = json2ddl(args.jsonfile, encoding)
     print('Formatted ddl:')
     print(ddl)
     print('\n')
