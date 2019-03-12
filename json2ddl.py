@@ -1,3 +1,4 @@
+#!/usr/bin/env/python3
 """
 Project moved to git@github.com:archgroove/json2ddl.git
 
